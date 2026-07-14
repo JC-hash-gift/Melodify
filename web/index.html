@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Melodify - Your Personal Music Player</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo">
+                <div class="logo-icon">🎵</div>
+                <h2>Melodify</h2>
+            </div>
+            
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active" data-page="home">🏠 Home</a>
+                <a href="#" class="nav-item" data-page="playlist">📋 All Songs</a>
+                <a href="#" class="nav-item" data-page="userplaylist">❤️ My Playlist</a>
+                <a href="#" class="nav-item" data-page="mood">😊 Mood Picker</a>
+                <a href="#" class="nav-item" data-page="genre">🎸 Genre Picker</a>
+                <a href="#" class="nav-item" data-page="search">🔍 Search</a>
+            </nav>
+            
+            <div class="sidebar-footer">
+                <div class="now-playing-small">
+                    <div class="small-song-title" id="smallSongTitle">Not Playing</div>
+                    <div class="small-artist">Melodify</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Home Page -->
+            <div id="homePage" class="page active">
+                <div class="hero">
+                    <h1 class="hero-title">Welcome to Melodify</h1>
+                    <p class="hero-subtitle">Your personal music experience, reimagined</p>
+                </div>
+                
+                <div class="stats">
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalSongs">0</div>
+                        <div class="stat-label">Total Songs</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="userSongs">0</div>
+                        <div class="stat-label">My Playlist</div>
+                    </div>
+                </div>
+                
+                <div class="features">
+                    <div class="feature-card" onclick="navigateTo('playlist')">
+                        <div class="feature-icon">🎵</div>
+                        <h3>All Songs</h3>
+                        <p>Browse your complete music library</p>
+                    </div>
+                    <div class="feature-card" onclick="navigateTo('mood')">
+                        <div class="feature-icon">😊</div>
+                        <h3>Mood-Based</h3>
+                        <p>Songs tailored to how you're feeling</p>
+                    </div>
+                    <div class="feature-card" onclick="navigateTo('genre')">
+                        <div class="feature-icon">🎸</div>
+                        <h3>Genre Selection</h3>
+                        <p>Discover music by your favorite genres</p>
+                    </div>
+                    <div class="feature-card" onclick="navigateTo('userplaylist')">
+                        <div class="feature-icon">❤️</div>
+                        <h3>My Playlist</h3>
+                        <p>Your custom curated playlist</p>
+                    </div>
+                </div>
+                
+                <div class="quick-play">
+                    <h2>Quick Picks</h2>
+                    <div class="quick-play-grid" id="quickPlayGrid"></div>
+                </div>
+            </div>
+            
+            <!-- All Songs Page -->
+            <div id="playlistPage" class="page">
+                <h1 class="page-title">All Songs</h1>
+                <div class="playlist-container" id="playlistContainer"></div>
+            </div>
+            
+            <!-- My Playlist Page -->
+            <div id="userplaylistPage" class="page">
+                <h1 class="page-title">My Playlist</h1>
+                <div class="playlist-container" id="userPlaylistContainer"></div>
+            </div>
+            
+            <!-- Mood Page -->
+            <div id="moodPage" class="page">
+                <h1 class="page-title">How are you feeling?</h1>
+                <div class="mood-grid" id="moodGrid"></div>
+                <div id="moodResults" class="results-grid"></div>
+            </div>
+            
+            <!-- Genre Page -->
+            <div id="genrePage" class="page">
+                <h1 class="page-title">Pick a Genre</h1>
+                <div class="genre-grid" id="genreGrid"></div>
+                <div id="genreResults" class="results-grid"></div>
+            </div>
+            
+            <!-- Search Page -->
+            <div id="searchPage" class="page">
+                <h1 class="page-title">Search Songs</h1>
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Search by song name...">
+                    <button onclick="searchSongs()">Search</button>
+                </div>
+                <div id="searchResults" class="results-grid"></div>
+            </div>
+        </div>
+        
+        <!-- Player Bar -->
+        <div class="player-bar">
+            <div class="player-controls">
+                <button class="control-btn" id="prevBtn">⏮</button>
+                <button class="control-btn play-pause" id="playPauseBtn">
+                    <span id="playIcon">▶</span>
+                    <span id="pauseIcon" style="display: none;">⏸</span>
+                </button>
+                <button class="control-btn" id="nextBtn">⏭</button>
+            </div>
+            
+            <div class="song-info-center">
+                <div class="current-song-title" id="currentSongTitle">Select a song</div>
+                <div class="current-song-artist">Melodify Player</div>
+            </div>
+            
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <div class="time-info">
+                    <span id="currentTime">0:00</span>
+                    <span id="totalTime">0:00</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="script.js"></script>
+</body>
+</html>

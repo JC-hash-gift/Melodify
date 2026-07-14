@@ -1,0 +1,275 @@
+1. Song stops after complete play but doesnt play the next song
+2. Same happens in shuffle(we have to manually play the songs)
+3. Volume up and down 
+4. Remove song from a playlist 
+5. Mood detection via inputs(AI recommendation) 
+6. Search engine
+7. Previous plays from search engine to detect users mood and suggest songs
+8. If possible running a time line as visuals or loading bar to show the song length
+9. Looping feature
+10.Pause song in midway and continue it later on
+11. Delete song from playlist
+_______________________________________________________________________________________
+
+1.Songs playing (total 22 songs )
+2.Queue playing 
+3.Next song(automatically/manually)
+4.Previous song
+5.Stop current song
+6.Show playlist
+7.Shuffle mode
+8.Custom temporary playlist and playing it
+9.Mood based recommender(would make temp playlist on happy and sad basis and you can play em)
+10.Genre based recommender(would make temp playlist on genre based and you can play em)
+
+gcc halo.c -o Halo.exe -lwinmm
+
+
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <windows.h>
+#include <time.h>
+#define MAX_SONGS 100
+char currentSongAlias[50] = "";
+void printMenu() {
+    system("cls");
+    printf("\033[1;35mMELODIFY\n");
+    printf("\033[0;34m1.  Play Playlist in Queue\033[0m\n");
+    printf("\033[0;34m2.  Shuffle and Play\033[0m\n");
+    printf("\033[0;34m3.  Show Playlist\033[0m\n");
+    printf("\033[0;34m4.  Mood-based Song Recommendation\033[0m\n");
+    printf("\033[0;34m5.  Genre-based Song Recommendation\033[0m\n");
+    printf("\033[0;34m6.  Create Your Own Playlist\033[0m\n");
+    printf("\033[0;34m7.  Play Your Playlist in Queue\033[0m\n");
+    printf("\033[0;34m8.  Shuffle Your Playlist\033[0m\n");
+    printf("\033[0;34m9.  Search and Play Song\033[0m\n");
+    printf("\033[0;34m10. Exit\033[0m\n");
+}
+void showPlaylist(char playlist[][100], int playlistSize) {
+    printf("\n\033[0;36mPlaylist:\033[0m\n");
+    for (int i = 0; i < playlistSize; i++) {
+        printf("  %d. %s\n", i + 1, playlist[i]);
+    }
+}
+void stopCurrentSong() {
+    if (strlen(currentSongAlias) > 0) {
+        char command[100];
+        sprintf(command, "close %s", currentSongAlias);
+        mciSendString(command, NULL, 0, NULL);
+        currentSongAlias[0] = '\0';
+    }
+}
+void playSong(const char* song) {
+    stopCurrentSong();
+    char command[200];
+    sprintf(currentSongAlias, "song%ld", time(NULL));
+    sprintf(command, "open \"%s\" type mpegvideo alias %s", song, currentSongAlias);
+    mciSendString(command, NULL, 0, NULL);
+    sprintf(command, "play %s", currentSongAlias);
+    mciSendString(command, NULL, 0, NULL);
+    printf("\nNow playing: %s\n", song);
+}
+void interactivePlayback(char playlist[][100], int size, int shuffle) {
+    int indices[MAX_SONGS];
+    for (int i = 0; i < size; i++) indices[i] = i;
+    if (shuffle) {
+        for (int i = 0; i < size; i++) {
+            int r = rand() % size;
+            int temp = indices[i];
+            indices[i] = indices[r];
+            indices[r] = temp;
+        }
+    }
+    int current = 0;
+    while (current < size && current >= 0) {
+        playSong(playlist[indices[current]]);
+        printf("\033[1;31mType 'n' for next, 'p' for previous, or 's' to stop and return to menu:\033[0m\n");
+        char input[10];
+        fgets(input, sizeof(input), stdin); // Clear buffer
+        fgets(input, sizeof(input), stdin);
+        if (input[0] == 'n' || input[0] == 'N') {
+            current = (current + 1) % size;
+        } else if (input[0] == 'p' || input[0] == 'P') {
+            current = (current - 1 + size) % size;
+        } else if (input[0] == 's' || input[0] == 'S') {
+            stopCurrentSong();
+            printf("Stopped. Returning to menu...\n");
+            Sleep(1000);
+            return;
+        } else {
+            printf("Invalid input, try again.\n");
+        }
+    }
+    stopCurrentSong();
+    Sleep(1000);
+}
+void createUserPlaylist(char playlist[][100], int playlistSize, char userPlaylist[][100], int *userPlaylistSize) {
+    *userPlaylistSize = 0;
+    int choice;
+    while (1) {
+        system("cls");
+        printf("\n\033[0;36mMain Playlist:\033[0m\n");
+        for (int i = 0; i < playlistSize; i++) {
+            printf("  %d. %s\n", i + 1, playlist[i]);
+        }
+        printf("\n\033[1;32mEnter song number to add to your playlist (0 to finish): \033[0m");
+        scanf("%d", &choice);
+        if (choice == 0) break;
+        if (choice < 1 || choice > playlistSize) {
+            printf("Invalid song number.\n");
+            Sleep(1000);
+        } else {
+            strcpy(userPlaylist[*userPlaylistSize], playlist[choice - 1]);
+            (*userPlaylistSize)++;
+            printf("Added: %s\n", playlist[choice - 1]);
+            Sleep(500);
+        }
+    }
+    printf("\n\033[1;32mYour playlist has been created with %d song(s)!\033[0m\n", *userPlaylistSize);
+    system("pause");
+}
+void moodBasedRecommendation(char playlist[][100], int playlistSize) {
+    char mood[20];
+    char tempPlaylist[MAX_SONGS][100];
+    int tempSize = 0;
+    printf("\n\033[1;33mHey, how are you feeling today? (happy/energetic/emotional/lonely/party/chill/dreamy/rebellious/groovy): \033[0m");
+    scanf("%s", mood);
+    for (int i = 0; i < playlistSize; i++) {
+        if ((strcmp(mood, "happy") == 0 && (strstr(playlist[i], "IDGAF") || strstr(playlist[i], "Physical") || strstr(playlist[i], "Confident") || strstr(playlist[i], "Levitating") || strstr(playlist[i], "Judas") || strstr(playlist[i], "Fever") || strstr(playlist[i], "Bilionera") || strstr(playlist[i], "Paro") || strstr(playlist[i], "Sucker") || strstr(playlist[i], "Sprinter") || strstr(playlist[i], "AURA"))) ||
+            (strcmp(mood, "energetic") == 0 && (strstr(playlist[i], "AURA") || strstr(playlist[i], "Sucker") || strstr(playlist[i], "Bilionera") || strstr(playlist[i], "Judas") || strstr(playlist[i], "Confident") || strstr(playlist[i], "IDGAF"))) ||
+            (strcmp(mood, "emotional") == 0 && (strstr(playlist[i], "NUMB") || strstr(playlist[i], "older") || strstr(playlist[i], "Escapism.") || strstr(playlist[i], "Softcore") || strstr(playlist[i], "Reflections") || strstr(playlist[i], "Empathy") || strstr(playlist[i], "Suffocation") || strstr(playlist[i], "YAD") || strstr(playlist[i], "Maniac") || strstr(playlist[i], "Strangers") || strstr(playlist[i], "Monster") || strstr(playlist[i], "Cherry"))) ||
+            (strcmp(mood, "lonely") == 0 && (strstr(playlist[i], "NUMB") || strstr(playlist[i], "older") || strstr(playlist[i], "Escapism.") || strstr(playlist[i], "Unforgettable") || strstr(playlist[i], "Softcore") || strstr(playlist[i], "Thumbs") || strstr(playlist[i], "Empathy") || strstr(playlist[i], "Cherry") || strstr(playlist[i], "Suffocation"))) ||
+            (strcmp(mood, "party") == 0 && (strstr(playlist[i], "Fever") || strstr(playlist[i], "Levitating") || strstr(playlist[i], "Bilionera") || strstr(playlist[i], "Espresso") || strstr(playlist[i], "Havana") || strstr(playlist[i], "Confident") || strstr(playlist[i], "Sucker") || strstr(playlist[i], "Physical") || strstr(playlist[i], "Paro") || strstr(playlist[i], "Sprinter") || strstr(playlist[i], "AURA"))) ||
+            (strcmp(mood, "chill") == 0 && (strstr(playlist[i], "Reflections") || strstr(playlist[i], "Softcore") || strstr(playlist[i], "Cherry") || strstr(playlist[i], "older") || strstr(playlist[i], "YAD") || strstr(playlist[i], "Strangers") || strstr(playlist[i], "Unforgettable"))) ||
+            (strcmp(mood, "dreamy") == 0 && (strstr(playlist[i], "Unforgettable") || strstr(playlist[i], "YAD") || strstr(playlist[i], "Cherry") || strstr(playlist[i], "Softcore") || strstr(playlist[i], "Reflections") || strstr(playlist[i], "older") || strstr(playlist[i], "Strangers"))) ||
+            (strcmp(mood, "rebellious") == 0 && (strstr(playlist[i], "Judas") || strstr(playlist[i], "Maniac") || strstr(playlist[i], "NUMB") || strstr(playlist[i], "Escapism.") || strstr(playlist[i], "Monster") || strstr(playlist[i], "Empathy") || strstr(playlist[i], "Suffocation") || strstr(playlist[i], "AURA"))) ||
+            (strcmp(mood, "groovy") == 0 && (strstr(playlist[i], "Espresso") || strstr(playlist[i], "Havana") || strstr(playlist[i], "Unforgettable") || strstr(playlist[i], "Fever") || strstr(playlist[i], "Cherry") || strstr(playlist[i], "Paro")))) {
+            strcpy(tempPlaylist[tempSize++], playlist[i]);
+        }
+    }
+    if (tempSize > 0) {
+        interactivePlayback(tempPlaylist, tempSize, 1); // shuffle
+    } else {
+        printf("Sorry, no songs found for that mood.\n");
+        Sleep(1500);
+    }
+}
+void genreBasedRecommendation(char playlist[][100], int playlistSize) {
+    char genre[20];
+    char tempPlaylist[MAX_SONGS][100];
+    int tempSize = 0;
+    printf("\n\033[1;34mChoose a genre (pop/indie/electronic/hiphop): \033[0m");
+    scanf("%s", genre);
+    for (int i = 0; i < playlistSize; i++) {
+        if ((strcmp(genre, "pop") == 0 && (strstr(playlist[i], "Criminal") || strstr(playlist[i], "Fever") || strstr(playlist[i], "IDGAF") || strstr(playlist[i], "Physical") || strstr(playlist[i], "Espresso") || strstr(playlist[i], "Paparazzi") || strstr(playlist[i], "Judas") || strstr(playlist[i], "COnfident") || strstr(playlist[i], "Havana") || strstr(playlist[i], "Sucker") || strstr(playlist[i], "Thumbs") || strstr(playlist[i], "Strangers") || strstr(playlist[i], "Cherry"))) ||
+            (strcmp(genre, "indie") == 0 && (strstr(playlist[i], "NUMB") || strstr(playlist[i], "Escapism.") || strstr(playlist[i], "Monster") || strstr(playlist[i], "Maniac") || strstr(playlist[i], "older") || strstr(playlist[i], "Reflections") || strstr(playlist[i], "SOftcore") || strstr(playlist[i], "YAD") || strstr(playlist[i], "Cherry"))) ||
+            (strcmp(genre, "electronic") == 0 && (strstr(playlist[i], "Suffocation") || strstr(playlist[i], "Empathy") || strstr(playlist[i], "AURA") || strstr(playlist[i], "Bilionera"))) ||
+            (strcmp(genre, "hiphop") == 0 && (strstr(playlist[i], "Sprinter") || strstr(playlist[i], "Unforgettable") || strstr(playlist[i], "NUMB")))) {
+            strcpy(tempPlaylist[tempSize++], playlist[i]);
+        }
+    }
+    if (tempSize > 0) {
+        interactivePlayback(tempPlaylist, tempSize, 1); // shuffle
+    } else {
+        printf("Sorry, no songs found for that genre.\n");
+        Sleep(1500);
+    }
+}
+void searchAndPlaySong(char playlist[][100], int playlistSize) {
+    char search[100];
+    int foundIndex = -1;
+    printf("\n\033[1;34mEnter part of the song name to search: \033[0m");
+    scanf("%s", search);
+    for (int i = 0; i < playlistSize; i++) {
+        if (strstr(playlist[i], search) != NULL) {
+            printf("\033[0;32mFound:\033[0m %s\n", playlist[i]);
+            foundIndex = i;
+            break;
+        }
+    }
+    if (foundIndex != -1) {
+        playSong(playlist[foundIndex]);
+        printf("\033[1;31mPress ENTER to finish, or type 's' and press ENTER to stop song...\033[0m\n");
+        char input[10];
+        fgets(input, sizeof(input), stdin); // flush buffer
+        fgets(input, sizeof(input), stdin);
+        if (input[0] == 's' || input[0] == 'S') {
+            stopCurrentSong();
+            printf("Stopped. Returning to menu...\n");
+            Sleep(1000);
+        }
+    } else {
+        printf("No song found matching '%s'.\n", search);
+        Sleep(1000);
+    }
+}
+int main() {
+    char playlist[MAX_SONGS][100] = {
+        "NUMB.mp3", "Criminal.mp3", "Fever.mp3", "IDGAF.mp3", "Jhol.mp3", "Maniac.mp3",
+        "Physical.mp3", "Escapism..mp3", "Espresso.mp3", "Judas.mp3", "Levitating.mp3",
+        "Monster.mp3", "older.mp3", "Paparazzi.mp3", "Paro.mp3", "Reflections.mp3",
+        "Softcore.mp3", "Sprinter.mp3", "Strangers.mp3", "Thumbs.mp3", "Unforgettable.mp3", "YAD.mp3", 
+        "Suffocation.mp3", "AURA.mp3", "Bilionera.mp3", "Cherry.mp3", "Confident.mp3", "Empathy.mp3",
+        "Havana.mp3", "Sucker.mp3"
+    };
+    char userPlaylist[MAX_SONGS][100];
+    int userPlaylistSize = 0;
+    int playlistSize = 30;
+    int choice;
+    srand(time(NULL));
+    while (1) {
+        printMenu();
+        printf("\n\033[0;33mEnter your choice: \033[0m");
+        scanf("%d", &choice);
+        switch (choice) {
+            case 1: // Play Playlist in Queue (main playlist, not shuffled)
+                interactivePlayback(playlist, playlistSize, 0);
+                break;
+            case 2: // Shuffle and Play Main Playlist
+                interactivePlayback(playlist, playlistSize, 1);
+                break;
+            case 3: // Show Playlist
+                showPlaylist(playlist, playlistSize);
+                system("pause");
+                break;
+            case 4: // Mood-based Recommendation
+                moodBasedRecommendation(playlist, playlistSize);
+                break;
+            case 5: // Genre-based Recommendation
+                genreBasedRecommendation(playlist, playlistSize);
+                break;
+            case 6: // Create User Playlist
+                createUserPlaylist(playlist, playlistSize, userPlaylist, &userPlaylistSize);
+                break;
+            case 7: // Play User Playlist in Queue
+                if (userPlaylistSize > 0)
+                    interactivePlayback(userPlaylist, userPlaylistSize, 0);
+                else {
+                    printf("No custom playlist created yet.\n");
+                    Sleep(1000);
+                }
+                break;
+            case 8: // Shuffle User Playlist
+                if (userPlaylistSize > 0)
+                    interactivePlayback(userPlaylist, userPlaylistSize, 1);
+                else {
+                    printf("No custom playlist created yet.\n");
+                    Sleep(1000);
+                }
+                break;
+            case 9: // Search and Play Song
+                searchAndPlaySong(playlist, playlistSize);
+                break;
+            case 10: // Exit
+                stopCurrentSong();
+                printf("\n\033[1;35mExiting... Bye!\033[0m\n");
+                return 0;
+            default:
+                printf("Invalid option. Try again!\n");
+                Sleep(1000);
+        }
+    }
+    return 0;
+}
